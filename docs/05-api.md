@@ -2,38 +2,38 @@
 
 ## 1. Objetivo
 
-Definir el contrato inicial entre el frontend web y el backend basado en Google Apps Script.
+Definir el contrato inicial entre el frontend web y el backend.
 
-El contrato se diseña independientemente de Google Sheets para evitar acoplar el frontend a la estructura física de las hojas.
+El contrato describe el comportamiento observable de la API y evita acoplar el frontend a la estructura física del almacenamiento.
+
+La primera implementación utiliza Google Apps Script, pero el contrato conceptual debe poder implementarse con otra tecnología si el proyecto evoluciona.
 
 ## 2. Arquitectura de comunicación
 
 ```mermaid
 flowchart LR
-    FE[Frontend Web] -->|HTTP Request| API[Apps Script API]
+    FE[Frontend Web] -->|Request| API[API / Backend]
     API --> VAL[Validación]
     VAL --> BUS[Reglas de negocio]
     BUS --> DATA[Persistencia]
-    DATA --> GS[(Google Sheets)]
-    GS --> DATA
+    DATA --> STORE[(Almacenamiento)]
+    STORE --> DATA
     DATA --> BUS
     BUS --> API
-    API -->|HTTP Response| FE
+    API -->|Response| FE
 ```
 
 ## 3. Convenciones
 
-### Método
+### Métodos
 
-Para el MVP se podrá utilizar una API HTTP sencilla sobre Google Apps Script.
-
-Operaciones conceptuales:
+Para el MVP se podrán utilizar:
 
 - `GET` para consultas.
 - `POST` para creación.
 - `PUT` o `PATCH` para actualización.
 
-La elección definitiva entre `PUT` y `PATCH` se establecerá antes de implementar la actualización parcial.
+La elección definitiva de métodos pertenece al diseño técnico de la implementación y debe documentarse antes de cerrar el contrato.
 
 ### Formato
 
@@ -59,7 +59,7 @@ Los recursos se identificarán mediante IDs lógicos definidos en `docs/04-model
 /responsibles/{responsableId}
 ```
 
-Los nombres anteriores representan el contrato conceptual. La implementación concreta de rutas en Apps Script deberá respetar las limitaciones de su modelo de despliegue.
+Los nombres anteriores representan el contrato conceptual. La implementación concreta puede adaptar el mecanismo de routing a las capacidades de la plataforma elegida sin cambiar el comportamiento del recurso.
 
 ## 5. Crear evento
 
@@ -218,7 +218,7 @@ Códigos conceptuales iniciales:
 sequenceDiagram
     actor Usuario
     participant FE as Frontend
-    participant API as Apps Script
+    participant API as Backend
     participant B as Negocio
     participant D as Datos
 
@@ -251,29 +251,31 @@ Los contratos principales deberán tener tests de integración.
 Ejemplos:
 
 ```text
-RF-001 → POST /events → evento creado
-RF-002 → GET /events → lista de eventos
-RF-004 → POST /services → servicio creado
-RF-005 → GET /events/{id}/services → servicios del evento
-RF-009 → PATCH /services/{id} → transición válida / inválida
+RF-001 → Crear evento → evento creado
+RF-002 → Consultar eventos → lista de eventos
+RF-004 → Crear servicio → servicio creado
+RF-005 → Consultar servicios → servicios del evento
+RF-009 → Cambiar estado → transición válida / inválida
 ```
+
+El método HTTP y framework de pruebas concretos dependen de la implementación tecnológica.
 
 ## 16. Trazabilidad
 
 ```mermaid
 flowchart LR
-    RF[RF-004 Registrar servicio] --> EP[POST /services]
+    RF[RF-004 Registrar servicio] --> EP[Contrato de creación de servicio]
     EP --> TEST[Test de integración]
-    TEST --> CODE[Implementación Apps Script]
+    TEST --> CODE[Implementación]
 ```
 
 ## 17. Decisiones pendientes
 
 Antes de considerar este contrato definitivo deberán confirmarse:
 
-- mecanismo real de routing en Apps Script;
+- mecanismo de routing de la plataforma elegida;
 - autenticación y autorización;
-- códigos HTTP que utilizará el despliegue;
+- códigos HTTP;
 - paginación y filtros;
 - formato definitivo de fechas;
 - estrategia de IDs;
@@ -281,6 +283,6 @@ Antes de considerar este contrato definitivo deberán confirmarse:
 - reglas de CORS si fueran necesarias;
 - formato final de errores.
 
-## 18. Regla para Codex
+## 18. Regla para agentes
 
-No implementar endpoints adicionales solamente porque parezcan convenientes. Toda nueva operación debe estar respaldada por un requisito o una decisión documentada.
+No implementar endpoints u operaciones adicionales solamente porque parezcan convenientes. Toda nueva operación debe estar respaldada por un requisito o una decisión documentada.

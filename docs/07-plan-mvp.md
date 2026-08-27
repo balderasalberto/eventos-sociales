@@ -1,22 +1,40 @@
 # Plan de implementación del MVP
 
-## 1. Propósito
+## 1. Objetivo
 
-Convertir la especificación del producto en un conjunto de incrementos pequeños, verificables y ejecutables por una persona o por un agente de IA.
+Convertir la especificación del producto en incrementos pequeños, verificables y ejecutables por una persona o por un agente de IA.
 
 El plan es independiente del proveedor de LLM y del lenguaje de programación.
 
 > **Cada incremento debe poder demostrar que funciona mediante evidencia verificable.**
 
-## 2. Estrategia
+## 2. Estrategia de ejecución
 
-El desarrollo seguirá ciclos pequeños:
+Cada incremento sigue este ciclo:
+
+```text
+Requisito
+   ↓
+Criterios de aceptación
+   ↓
+Plan de tarea
+   ↓
+Tests
+   ↓
+Implementación
+   ↓
+Verificación
+   ↓
+Review
+   ↓
+Definition of Done
+```
 
 ```mermaid
 flowchart LR
     REQ[Requisito] --> AC[Criterios de aceptación]
     AC --> PLAN[Plan de tarea]
-    PLAN --> TEST[Test primero / test definido]
+    PLAN --> TEST[Test definido]
     TEST --> IMPL[Implementación]
     IMPL --> VERIFY[Verificación]
     VERIFY --> REVIEW[Review]
@@ -28,93 +46,160 @@ No se debe construir una gran cantidad de código antes de validar el comportami
 
 ## 3. Fases
 
-### MVP-00 — Fundación del proyecto
+| Fase | Nombre | Objetivo | Estado |
+|---|---|---|---|
+| MVP-00 | Fundación | Preparar estructura, documentación, calidad y seguridad básica | Siguiente |
+| MVP-01 | Clientes | Gestionar clientes | Pendiente |
+| MVP-02 | Eventos | Crear y consultar eventos | Pendiente |
+| MVP-03 | Proveedores | Gestionar proveedores | Pendiente |
+| MVP-04 | Servicios | Registrar y consultar servicios | Pendiente |
+| MVP-05 | Estados | Implementar reglas de transición | Pendiente |
+| MVP-06 | Integración | Integrar frontend, API y persistencia | Pendiente |
+| MVP-07 | Calidad | Tests, seguridad y revisión | Pendiente |
+| MVP-08 | Despliegue | Preparar entrega del MVP | Pendiente |
 
-**Objetivo:** disponer de una base reproducible para desarrollo humano y asistido por agentes.
+## 4. MVP-00 — Fundación
 
-Incluye:
+### Objetivo
+
+Disponer de una base reproducible para desarrollo humano y asistido por agentes.
+
+### Entregables
 
 - estructura del repositorio;
 - `SPEC.md`;
 - documentación base;
 - ADRs;
 - reglas para agentes;
-- configuración inicial de tests;
+- estructura de tests;
 - política básica de seguridad;
-- CI mínima cuando corresponda.
+- CI mínima cuando corresponda;
+- README actualizado;
+- primer criterio de verificación automatizable.
 
-**Salida:** el proyecto puede ser comprendido y validado por un agente sin depender de conocimiento oculto.
+### Criterios de aceptación
 
-### MVP-01 — Clientes
+```text
+Given el repositorio está preparado
+When un agente inicia una tarea
+Then puede localizar la fuente de verdad
+And puede identificar las reglas relevantes
+And conoce cómo ejecutar los tests
+And no necesita conocimiento oculto para comenzar.
+```
 
-**Objetivo:** crear y consultar clientes.
+### Definition of Done
 
-Capacidades:
+- documentación consistente;
+- estructura revisada;
+- ningún secreto incluido;
+- mecanismo de tests identificado;
+- cambios revisables mediante Git.
 
-- registrar cliente;
-- validar campos obligatorios;
+## 5. MVP-01 — Clientes
+
+### Objetivo
+
+Permitir registrar y consultar clientes.
+
+### Comportamiento mínimo
+
+- crear cliente;
 - consultar clientes;
-- identificar cliente de forma única.
+- consultar cliente por identificador;
+- validar campos obligatorios.
 
-Criterios mínimos:
+### Tests mínimos
 
-- cliente válido se registra;
-- datos inválidos se rechazan;
-- cliente registrado puede consultarse;
-- errores tienen formato consistente.
-
-### MVP-02 — Eventos
-
-**Objetivo:** administrar eventos asociados a clientes.
-
-Capacidades:
-
-- crear evento;
-- consultar evento;
-- listar eventos;
-- asociar evento con cliente;
-- gestionar estado inicial.
+- creación válida;
+- datos obligatorios ausentes;
+- identificador único;
+- consulta de cliente inexistente.
 
 ```mermaid
 flowchart LR
-    CLIENTE[Cliente] --> EVENTO[Evento]
+    SPEC[Requisito cliente] --> TEST[Test]
+    TEST --> IMPL[Implementación]
+    IMPL --> VERIFY[Verificación]
 ```
 
-### MVP-03 — Proveedores
+## 6. MVP-02 — Eventos
 
-**Objetivo:** administrar proveedores disponibles para los servicios.
+### Objetivo
 
-Capacidades:
+Permitir crear y consultar eventos asociados a un cliente.
 
-- registrar proveedor;
-- consultar proveedor;
-- actualizar información básica;
-- validar existencia cuando se asocia a un servicio.
+### Comportamiento mínimo
 
-### MVP-04 — Servicios
+- crear evento;
+- consultar eventos;
+- consultar evento por identificador;
+- impedir evento sin cliente válido;
+- manejar estado inicial.
 
-**Objetivo:** registrar servicios requeridos por un evento.
+### Tests mínimos
 
-Capacidades:
+- creación válida;
+- cliente inexistente;
+- campos obligatorios;
+- consulta inexistente;
+- estado inicial correcto.
+
+## 7. MVP-03 — Proveedores
+
+### Objetivo
+
+Permitir registrar y consultar proveedores.
+
+### Tests mínimos
+
+- creación válida;
+- validación;
+- consulta;
+- identificador único.
+
+## 8. MVP-04 — Servicios
+
+### Objetivo
+
+Permitir asociar servicios a eventos y, cuando corresponda, a proveedores.
+
+### Comportamiento mínimo
 
 - crear servicio;
-- asociarlo a un evento;
-- asociar proveedor cuando corresponda;
 - consultar servicios de un evento;
-- gestionar estado del servicio.
+- consultar servicio por identificador;
+- validar evento existente;
+- validar proveedor cuando se proporcione;
+- asignar estado inicial.
 
 ```mermaid
-flowchart TD
-    CLIENTE[Cliente] --> EVENTO[Evento]
-    EVENTO --> SERVICIO[Servicio]
-    PROVEEDOR[Proveedor] --> SERVICIO
+sequenceDiagram
+    actor Usuario
+    participant FE as Frontend
+    participant API as API
+    participant Domain as Dominio
+    participant Data as Persistencia
+
+    Usuario->>FE: Registrar servicio
+    FE->>API: Request
+    API->>Domain: Validar operación
+    Domain->>Data: Guardar servicio
+    Data-->>Domain: Resultado
+    Domain-->>API: Servicio creado
+    API-->>FE: Respuesta
+    FE-->>Usuario: Confirmación
 ```
 
-### MVP-05 — Estados y reglas de negocio
+## 9. MVP-05 — Estados
 
-**Objetivo:** hacer explícitas las transiciones permitidas.
+### Objetivo
 
-Ejemplo conceptual:
+Aplicar las reglas de ciclo de vida de eventos y servicios.
+
+### Regla
+
+No basta con validar que un estado exista. Debe validarse que la transición sea permitida.
 
 ```mermaid
 stateDiagram-v2
@@ -125,50 +210,81 @@ stateDiagram-v2
     CONFIRMADO --> CANCELADO
 ```
 
-Las transiciones definitivas deben derivarse de los requisitos, no de este ejemplo si todavía no han sido aprobadas.
+El diagrama es provisional y deberá ajustarse a las reglas de negocio definitivas.
 
-### MVP-06 — API e integración
+### Tests
 
-**Objetivo:** completar la comunicación entre frontend y backend.
+- transición válida;
+- transición inválida;
+- cancelación válida;
+- estado desconocido;
+- persistencia del nuevo estado.
 
-Incluye:
+## 10. MVP-06 — Integración
 
-- endpoints acordados;
+### Objetivo
+
+Conectar las capas sin romper sus límites.
+
+```mermaid
+flowchart TB
+    UI[Frontend] --> API[API]
+    API --> APP[Casos de uso]
+    APP --> DOMAIN[Dominio]
+    DOMAIN --> PORT[Persistencia]
+    PORT --> GS[(Google Sheets)]
+```
+
+### Verificaciones
+
+- contratos API;
 - validación backend;
-- formato uniforme de respuestas;
-- formato uniforme de errores;
-- pruebas de integración;
-- protección de secretos.
+- persistencia;
+- manejo de errores;
+- flujo completo de casos principales.
 
-### MVP-07 — Calidad y seguridad
+## 11. MVP-07 — Calidad y seguridad
 
-**Objetivo:** establecer controles antes de considerar el MVP terminado.
+### Objetivo
 
-Incluye:
+Comprobar que el MVP sea mantenible y seguro antes de su entrega.
 
-- tests unitarios relevantes;
-- tests de integración relevantes;
-- pruebas de criterios de aceptación;
+### Actividades
+
+- tests unitarios;
+- tests de integración;
+- tests de aceptación de los flujos críticos;
 - revisión de seguridad;
 - validación de entradas;
 - revisión de secretos;
-- CI para validaciones automatizadas.
+- CI para validaciones automatizadas;
+- revisión de dependencias.
 
-### MVP-08 — Operación y entrega
+```mermaid
+flowchart TB
+    UNIT[Tests unitarios] --> INT[Tests de integración]
+    INT --> ACCEPT[Tests de aceptación]
+    ACCEPT --> RELEASE[Decisión de entrega]
+```
 
-**Objetivo:** disponer de una ruta reproducible para validar y desplegar.
+## 12. MVP-08 — Despliegue
 
-Incluye, según necesidad:
+### Objetivo
 
-- build reproducible;
-- despliegue documentado;
-- configuración por entorno;
-- observabilidad mínima;
-- procedimiento de rollback o recuperación.
+Preparar una versión reproducible del MVP.
 
-## 4. Plantilla de tarea
+### Verificaciones
 
-Toda tarea implementable debería poder expresarse así:
+- configuración separada de código;
+- secretos fuera del repositorio;
+- instrucciones de despliegue;
+- versión identificable;
+- pruebas posteriores al despliegue;
+- procedimiento de recuperación o rollback cuando aplique.
+
+## 13. Formato estándar de una tarea
+
+Toda tarea implementable debe poder documentarse así:
 
 ```text
 ID: TASK-XXX
@@ -183,9 +299,7 @@ Contexto:
 Documentos y ADR relevantes.
 
 Criterios de aceptación:
-- ...
-- ...
-- ...
+Given / When / Then
 
 Tests:
 - unitarios: ...
@@ -208,101 +322,59 @@ Definition of Done:
 - [ ] ADR actualizado si aplica
 ```
 
-## 5. Flujo para agentes
+## 14. Flujo para agentes
 
 ```mermaid
-sequenceDiagram
-    actor User as Usuario
-    participant Repo as Repositorio
-    participant Agent as Agente
-    participant Test as Tests
-    participant Review as Review
-
-    User->>Repo: Selecciona tarea
-    Agent->>Repo: Lee SPEC, Docs y ADR
-    Agent->>Agent: Formula plan
-    Agent->>Repo: Implementa cambios
-    Agent->>Test: Ejecuta validaciones
-    Test-->>Agent: Resultado
-    alt Fallo
-        Agent->>Agent: Corrige dentro del alcance
-        Agent->>Test: Repite validación
-    else Éxito
-        Agent->>Review: Presenta cambios
-    end
-    Review-->>Repo: Aprobación / cambios
+flowchart TD
+    START[Tomar tarea] --> READ[Leer SPEC, Docs y ADRs]
+    READ --> PLAN[Crear plan pequeño]
+    PLAN --> TEST[Definir / actualizar tests]
+    TEST --> CODE[Implementar]
+    CODE --> RUN[Ejecutar tests]
+    RUN --> CHECK{¿Cumple?}
+    CHECK -->|No| FIX[Corregir dentro del alcance]
+    FIX --> RUN
+    CHECK -->|Sí| REVIEW[Revisar cambios]
+    REVIEW --> DOC[Actualizar documentación si aplica]
+    DOC --> DONE[Definition of Done]
 ```
 
-## 6. Uso de Skills
+## 15. Límites de autonomía
 
-Las skills se aplican según la naturaleza de la tarea.
+Un agente puede realizar cambios de implementación dentro del alcance de una tarea cuando:
 
-Ejemplo:
+- el requisito está claro;
+- las decisiones necesarias están documentadas;
+- los tests son suficientes;
+- no se modifican controles de seguridad sin revisión.
 
-```text
-TASK-020 Registrar servicio
-        │
-        ├── domain-modeling
-        ├── api-design
-        ├── unit-testing
-        └── documentation
-```
+Debe detenerse y solicitar decisión cuando:
 
-Una skill no puede modificar silenciosamente los requisitos.
+- hay conflicto entre requisitos;
+- debe cambiar una decisión arquitectónica aceptada;
+- necesita introducir una tecnología con impacto significativo;
+- debe modificar autenticación, autorización o manejo de secretos de forma sustancial;
+- los criterios de aceptación son ambiguos.
 
-## 7. Uso del Harness
+## 16. Uso de Skills, Harness, Memory, RAG y MCP
 
-El harness debe ejecutar las tareas bajo límites definidos.
-
-Como mínimo, cuando exista soporte:
-
-```text
-1. cargar contexto necesario;
-2. limitar herramientas;
-3. ejecutar implementación;
-4. ejecutar tests;
-5. comprobar criterios;
-6. detenerse ante errores o ambigüedad.
-```
-
-## 8. Loops de validación
-
-Cada loop debe tener:
-
-- objetivo concreto;
-- entrada definida;
-- validación observable;
-- límite de iteraciones o condición de parada;
-- resultado final.
-
-No se permite un loop indefinido del tipo "seguir intentando hasta que funcione".
-
-## 9. Tests unitarios
-
-Los tests unitarios se crearán cerca de la implementación correspondiente, siguiendo las convenciones del lenguaje elegido.
-
-El plan funcional no prescribe un framework concreto.
+Estas capacidades son facilitadores del proceso y no sustituyen la fuente de verdad.
 
 ```mermaid
 flowchart LR
-    AC[Criterio de aceptación] --> UNIT[Test unitario]
-    UNIT --> CODE[Implementación]
-    CODE --> UNIT
+    TASK[Tarea] --> CONTEXT[Contexto]
+    CONTEXT --> SKILL[Skill]
+    CONTEXT --> MEMORY[Memory]
+    CONTEXT --> RAG[RAG si aplica]
+    CONTEXT --> MCP[MCP si aplica]
+    CONTEXT --> HARNESS[Harness]
+    HARNESS --> AGENT[Agente]
+    AGENT --> TEST[Test]
 ```
 
-## 10. RAG, Memory y MCP
+El MVP comienza con las capacidades mínimas necesarias. Las capacidades avanzadas se incorporarán cuando exista una necesidad concreta.
 
-Estas capacidades no son prerrequisitos para completar la primera funcionalidad del MVP.
-
-Se incorporarán cuando aporten valor verificable:
-
-- **Memory:** cuando el trabajo multi-sesión requiera conservar contexto operativo.
-- **RAG:** cuando el volumen de documentación/código haga insuficiente el contexto directo.
-- **MCP:** cuando un agente necesite herramientas o fuentes externas con una interfaz controlada.
-
-Cada incorporación deberá tener un objetivo, límites y validación.
-
-## 11. Orquestación
+## 17. Orquestación
 
 Se comenzará con un único agente cuando sea suficiente.
 
@@ -320,13 +392,13 @@ flowchart TD
     ORCH --> REVIEW[Reviewer]
 ```
 
-## 12. Seguridad como requisito de salida
+## 18. Seguridad como requisito de salida
 
 Una tarea que modifique autenticación, autorización, datos sensibles, herramientas, dependencias o infraestructura debe incluir revisión de seguridad.
 
 Un cambio no se considera terminado por el simple hecho de pasar tests funcionales.
 
-## 13. Definition of Done global
+## 19. Definition of Done global
 
 El MVP estará listo cuando:
 
@@ -339,7 +411,7 @@ El MVP estará listo cuando:
 - exista un proceso reproducible de validación y entrega;
 - los cambios puedan ser comprendidos por otro agente sin depender de contexto privado.
 
-## 14. Orden recomendado
+## 20. Orden recomendado
 
 ```text
 MVP-00 Fundación
@@ -354,7 +426,7 @@ MVP-04 Servicios
        ↓
 MVP-05 Estados
        ↓
-MVP-06 API
+MVP-06 Integración
        ↓
 MVP-07 Calidad + Seguridad
        ↓
@@ -363,7 +435,7 @@ MVP-08 Entrega
 
 La secuencia puede modificarse si un requisito o una decisión arquitectónica lo justifica.
 
-## 15. Regla para cualquier LLM
+## 21. Regla para cualquier LLM
 
 Antes de modificar código, el agente debe poder responder:
 

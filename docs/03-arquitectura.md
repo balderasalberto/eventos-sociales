@@ -4,7 +4,7 @@
 
 Definir una arquitectura sencilla, mantenible y preparada para evolucionar sin introducir complejidad innecesaria en el MVP.
 
-La primera versión debe aprovechar la experiencia y componentes que ya forman parte del proyecto: frontend web, Google Apps Script y Google Sheets.
+La primera implementación utiliza frontend web, Google Apps Script y Google Sheets, pero las reglas del dominio deben permanecer desacopladas de estas tecnologías cuando sea razonable.
 
 La arquitectura deberá permitir una futura migración del almacenamiento o backend sin rediseñar el dominio funcional.
 
@@ -17,26 +17,27 @@ La arquitectura deberá permitir una futura migración del almacenamiento o back
 5. **Evolución:** Google Sheets es la persistencia inicial, no una decisión irreversible para todas las etapas del producto.
 6. **Seguridad:** ningún secreto debe almacenarse en GitHub.
 7. **Trazabilidad:** requisitos, código, tests y cambios deben poder relacionarse.
+8. **Portabilidad:** las reglas de negocio no deben depender de un LLM ni de un lenguaje de programación.
 
 ## 3. Arquitectura de alto nivel
 
 ```mermaid
 flowchart LR
     U[Usuario] --> FE[Frontend Web]
-    FE --> API[Google Apps Script API]
+    FE --> API[API / Backend]
     API --> BL[Lógica de negocio]
     BL --> REPO[Repositorio de datos]
-    REPO --> GS[Google Sheets]
+    REPO --> GS[Persistencia inicial: Google Sheets]
 
-    GH[GitHub] --> FE
+    GH[GitHub] --> CODE[Código]
     GH --> DOC[Documentación]
     GH --> TEST[Tests]
-    GH --> CI[GitHub Actions]
+    GH --> CI[Validación automática]
 
-    AG[Codex / Agente IA] --> GH
-    AG --> DOC
-    AG --> TEST
+    AI[Agente IA] --> GH
 ```
+
+La tecnología concreta de `API / Backend` y `Persistencia` pertenece a la implementación. Para el MVP actual se utiliza Google Apps Script + Google Sheets.
 
 ## 4. Capas
 
@@ -54,7 +55,7 @@ El frontend no debe contener reglas de negocio críticas que también deban cump
 
 ### 4.2 API / Backend
 
-Google Apps Script actuará inicialmente como frontera HTTP entre el frontend y la lógica del sistema.
+La implementación inicial utiliza Google Apps Script como frontera HTTP entre el frontend y la lógica del sistema.
 
 Responsabilidades:
 
@@ -87,10 +88,10 @@ La aplicación no debe acoplar las reglas de negocio a las coordenadas concretas
 ```mermaid
 flowchart TD
     B[Lógica de negocio] --> I[Interfaz de persistencia]
-    I --> G[Google Sheets Adapter]
+    I --> G[Adaptador Google Sheets]
     G --> S[(Google Sheets)]
 
-    I -. futura implementación .-> DB[(Base de datos futura)]
+    I -. futura implementación .-> DB[(Otra base de datos)]
 ```
 
 ## 5. Flujo de una operación
@@ -101,17 +102,17 @@ Ejemplo: registrar un servicio.
 sequenceDiagram
     actor Usuario
     participant Frontend
-    participant API as Apps Script API
+    participant API as Backend / API
     participant Business as Lógica de negocio
     participant Data as Persistencia
-    participant Sheets as Google Sheets
+    participant Storage as Almacenamiento
 
     Usuario->>Frontend: Captura datos
-    Frontend->>API: POST registrar servicio
+    Frontend->>API: Solicitud para registrar servicio
     API->>Business: Validar y procesar
     Business->>Data: Guardar servicio
-    Data->>Sheets: Escribir registro
-    Sheets-->>Data: Confirmación
+    Data->>Storage: Persistir registro
+    Storage-->>Data: Confirmación
     Data-->>Business: Resultado
     Business-->>API: Servicio creado
     API-->>Frontend: Respuesta
@@ -121,8 +122,6 @@ sequenceDiagram
 ## 6. Contrato entre frontend y backend
 
 El frontend deberá comunicarse con el backend mediante contratos definidos en `docs/05-api.md`.
-
-Conceptualmente:
 
 ```mermaid
 flowchart LR
@@ -146,29 +145,33 @@ flowchart TB
     R --> SRC[src/]
     R --> DOC[docs/]
     R --> T[tests/]
-    R --> SK[skills/]
+    R --> AI[ai/]
     R --> SPEC[SPEC.md]
     R --> AG[AGENTS.md]
     R --> WF[.github/workflows/]
 ```
 
-## 8. Codex y agentes
+## 8. Agentes de IA
 
-Codex deberá trabajar dentro de las reglas del repositorio.
+La arquitectura del producto no depende de un proveedor de IA.
 
 ```mermaid
 flowchart TD
-    TASK[Tarea / Issue] --> SPEC[SPEC.md]
-    SPEC --> AG[AGENTS.md]
-    AG --> SK[Skill aplicable]
-    SK --> PLAN[Plan de implementación]
-    PLAN --> TEST[Test primero / actualizar tests]
-    TEST --> CODE[Implementación]
-    CODE --> RUN[Ejecutar tests]
-    RUN --> PR[Pull Request]
-    PR --> REVIEW[Revisión]
-    REVIEW --> MAIN[main]
+    TASK[Tarea] --> RULES[Reglas neutrales del repositorio]
+    RULES --> CODEX[Codex]
+    RULES --> COPILOT[GitHub Copilot]
+    RULES --> CLAUDE[Claude]
+    RULES --> OTHER[Otro LLM]
+
+    CODEX --> PR[Implementación / PR]
+    COPILOT --> PR
+    CLAUDE --> PR
+    OTHER --> PR
 ```
+
+`AGENTS.md` funciona como punto de entrada para herramientas que lo soporten. Las reglas neutrales viven en `ai/instructions/` y los flujos reutilizables en `ai/prompts/`.
+
+Los adaptadores específicos de herramientas se mantienen en `ai/adapters/` y no deben redefinir reglas de negocio.
 
 ## 9. Tests
 
@@ -190,6 +193,8 @@ Frontend + API + entorno de prueba
 
 Para el MVP se priorizan los tests unitarios y los tests de integración esenciales.
 
+El framework de pruebas depende del lenguaje elegido para la implementación.
+
 ## 10. Seguridad
 
 ### No se almacenará en GitHub
@@ -210,8 +215,6 @@ flowchart LR
 ```
 
 ## 11. Evolución prevista
-
-La arquitectura inicial no debe impedir una evolución posterior.
 
 ### Etapa MVP
 
@@ -245,7 +248,8 @@ Las siguientes decisiones no deben inventarse todavía:
 - formato definitivo de errores de API;
 - estrategia de despliegue;
 - necesidad de una base de datos distinta de Google Sheets;
-- estrategia de auditoría.
+- estrategia de auditoría;
+- lenguaje y framework definitivos si la implementación evoluciona.
 
 Estas decisiones se documentarán conforme avance el diseño.
 
@@ -258,5 +262,6 @@ Una solución se considera adecuada para el MVP cuando:
 - puede probarse automáticamente;
 - no expone secretos;
 - permite modificar la persistencia sin reescribir el dominio;
-- puede ser mantenida por una persona y asistida por agentes de IA;
-- mantiene trazabilidad entre requisitos, tests y código.
+- puede ser mantenida por una persona y asistida por diferentes agentes de IA;
+- mantiene trazabilidad entre requisitos, tests y código;
+- no depende de un lenguaje o proveedor de LLM específico a nivel de negocio.

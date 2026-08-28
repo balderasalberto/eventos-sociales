@@ -8,6 +8,7 @@ Este documento transforma la visión del producto en requisitos verificables. Ca
 
 - **Administrador:** configura y administra la información del sistema.
 - **Operador:** registra, consulta y actualiza la operación cotidiana.
+- **Cliente:** persona u organización que contrata o solicita la realización del evento. El acceso directo del cliente a la aplicación se considera una capacidad futura y no forma parte todavía del MVP.
 
 ## 3. Conceptos funcionales
 
@@ -36,6 +37,27 @@ Representa a la persona o empresa que proporciona un servicio.
 Representa a la persona que contrata o solicita la organización del evento.
 
 ## 4. Requisitos funcionales
+
+### RF-000 — Registrar cliente
+
+El sistema debe permitir registrar un cliente con la información mínima definida por el modelo de datos.
+
+**Criterios de aceptación:**
+
+- El cliente debe tener identificador único.
+- Debe registrar nombre o razón social.
+- Puede registrar datos de contacto básicos.
+- No debe permitirse guardar información obligatoria vacía.
+
+### RF-000A — Consultar cliente
+
+El sistema debe permitir consultar un cliente registrado mediante su identificador.
+
+**Criterios de aceptación:**
+
+- Debe existir el identificador consultado.
+- Debe devolver la información registrada del cliente.
+- Un identificador inexistente debe producir un resultado controlado.
 
 ### RF-001 — Registrar evento
 
@@ -190,6 +212,7 @@ No forman parte del MVP inicial, salvo decisión posterior:
 - Inteligencia artificial para recomendaciones.
 - Integraciones externas complejas.
 - Automatizaciones avanzadas de comunicación.
+- Portal de autoservicio del cliente.
 
 ## 7. Trazabilidad futura
 
@@ -197,4 +220,4 @@ Los identificadores `RF-*` y `RNF-*` se conservarán estables para poder utiliza
 
 Ejemplo:
 
-`RF-004` → `test_registrar_servicio` → implementación de registro de servicio.
+`RF-000` → `test_registrar_cliente` → implementación de registro de cliente.

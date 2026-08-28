@@ -96,12 +96,13 @@ Las instrucciones específicas de cada herramienta son una capa de adaptación y
 - ADR-001: persistencia inicial.
 - ADR-002: separación dominio/persistencia.
 - ADR-003: arquitectura LLM-agnóstica.
-- ADR-004: stack tecnológico del MVP, pendiente de decisión final.
+- ADR-004: estrategia de arquitectura y contratos agnósticos al lenguaje aceptada.
 - Base de seguridad y tests documentada.
+- `PROJECT.md`: contexto de continuidad del proyecto.
 
 ### Pendiente
 
-1. Resolver ADR-004.
+1. Crear ADR de stack de implementación concreta.
 2. Completar MVP-00 — Fundación.
 3. Crear el primer vertical slice.
 4. Establecer CI y ejecución automatizada de tests.

@@ -24,6 +24,8 @@ Las instrucciones para agentes de IA se encuentran en `ai/` y sirven para ejecut
 
 ### Funcionalidades MVP
 
+- Registrar clientes.
+- Consultar clientes.
 - Registrar eventos.
 - Consultar eventos.
 - Modificar eventos.
@@ -67,8 +69,11 @@ Las transiciones definitivas deben estar respaldadas por reglas de dominio docum
 
 ## 6. Reglas de negocio iniciales
 
+- Un cliente debe tener un identificador único.
+- Un cliente debe tener nombre o razón social.
 - Un evento debe tener una fecha.
 - Un evento debe tener un nombre o descripción.
+- Un evento debe estar asociado a un cliente válido.
 - Un servicio debe estar asociado a un evento.
 - Un servicio debe tener un estado válido.
 - Un proveedor asociado debe existir.

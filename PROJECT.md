@@ -23,6 +23,77 @@ La fuente de verdad está distribuida de forma intencional:
 
 `PROJECT.md` **no sustituye** estas fuentes. Es un índice operativo para recuperar contexto.
 
+## Regla de evolución de funcionalidades
+
+Ninguna funcionalidad nueva debe comenzar directamente con código. Primero se realiza un análisis de impacto sobre:
+
+- SPEC;
+- requisitos y criterios de aceptación;
+- dominio y reglas de negocio;
+- experiencia y flujo de usuario;
+- contratos/API;
+- arquitectura;
+- datos y persistencia;
+- seguridad;
+- ADRs;
+- tests;
+- documentación.
+
+El resultado del análisis determina qué documentos necesitan cambios. No todos deben modificarse en cada tarea.
+
+```mermaid
+flowchart TD
+    IDEA[Idea / nuevo requerimiento]
+    --> IMPACT[Análisis de impacto]
+    --> SPEC[SPEC]
+    --> REQ[Requisitos]
+    --> DOMAIN[Dominio]
+    --> UX[Flujo / pantallas]
+    --> CONTRACT[Contratos / API]
+    --> ARCH[Arquitectura]
+    --> ADR{¿Nueva decisión?}
+    ADR -->|Sí| ADRDOC[ADR]
+    ADR -->|No| PLAN[Plan de implementación]
+    ADRDOC --> PLAN
+    PLAN --> TEST[Tests]
+    TEST --> CODE[Código]
+    CODE --> VALIDATE[Validación]
+    VALIDATE --> DOC[Documentación]
+    DOC --> DONE[Done]
+```
+
+## Diseño de interfaz y pantallas
+
+Las funcionalidades que tengan interacción web deben documentar, cuando sea útil, una representación aproximada de sus pantallas antes de la implementación.
+
+Estas representaciones son **wireframes conceptuales**, no diseños visuales finales ni código. Pueden expresarse mediante Mermaid, ASCII u otra representación textual adecuada.
+
+Ejemplo conceptual para la contratación de un servicio:
+
+```mermaid
+flowchart LR
+    LIST[Servicios disponibles\n----------------\nFotografía\nCatering\nMúsica]
+    --> DETAIL[Detalle del servicio\n----------------\nDescripción\nProveedor\nCondiciones\n[Contratar]]
+    --> CONFIRM[Confirmar contratación\n----------------\nServicio\nEvento\nDatos\n[Confirmar]]
+    --> RESULT[Resultado\n----------------\nSolicitud registrada\nEstado: SOLICITADA]
+```
+
+Cuando una pantalla tenga suficiente complejidad, se podrá complementar con un diagrama de navegación:
+
+```mermaid
+flowchart TD
+    HOME[Inicio]
+    HOME --> EVENTS[Mis eventos]
+    HOME --> SERVICES[Servicios]
+    SERVICES --> SEARCH[Buscar / filtrar]
+    SEARCH --> DETAIL[Detalle]
+    DETAIL --> CONTRACT[Contratar]
+    CONTRACT --> CONFIRM[Confirmación]
+    CONFIRM --> REQUESTS[Mis solicitudes]
+```
+
+Los wireframes deben mantenerse separados de las decisiones tecnológicas: no deben asumir React, Angular, Vue, HTML concreto u otro framework salvo que exista una decisión de implementación vigente.
+
 ## Arquitectura documental
 
 ```mermaid
@@ -72,14 +143,7 @@ flowchart TB
 
 ## LLM
 
-El proyecto no depende de un proveedor específico. Puede ser trabajado por:
-
-- ChatGPT
-- Codex
-- GitHub Copilot
-- Claude
-- otros agentes compatibles
-- desarrolladores humanos
+El proyecto no depende de un proveedor específico. Puede ser trabajado por ChatGPT, Codex, GitHub Copilot, Claude, otros agentes compatibles o desarrolladores humanos.
 
 Las instrucciones específicas de cada herramienta son una capa de adaptación y no deben convertirse en la fuente de verdad del producto.
 
@@ -99,6 +163,7 @@ Las instrucciones específicas de cada herramienta son una capa de adaptación y
 - ADR-004: estrategia de arquitectura y contratos agnósticos al lenguaje aceptada.
 - Base de seguridad y tests documentada.
 - `PROJECT.md`: contexto de continuidad del proyecto.
+- Regla de análisis de impacto y wireframes conceptuales.
 
 ### Pendiente
 
@@ -127,8 +192,10 @@ flowchart LR
 Una tarea no está terminada solamente porque el código compile. Debe comprobarse, según corresponda:
 
 - requisito identificado;
+- análisis de impacto realizado;
 - alcance respetado;
 - criterios de aceptación satisfechos;
+- flujo/pantallas documentados cuando aplique;
 - tests relevantes creados o actualizados;
 - tests ejecutados;
 - seguridad revisada cuando aplique;

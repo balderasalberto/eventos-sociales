@@ -2,90 +2,118 @@
 
 ## Estado
 
-Propuesto
+Aceptado
 
 ## Contexto
 
-El proyecto necesita seleccionar un stack inicial para implementar el MVP. La selección debe considerar la velocidad de validación, la infraestructura existente, testing, seguridad, mantenibilidad y la capacidad de trabajar con distintos agentes de IA.
+El proyecto necesita una base tecnológica para implementar el MVP, pero uno de sus objetivos arquitectónicos es permanecer **LLM-agnóstico** y, en las capas de producto, contrato y documentación, **lo más independiente posible del lenguaje**.
 
-La arquitectura funcional y la documentación deben permanecer independientes del lenguaje y del proveedor de LLM.
-
-## Criterios de evaluación
-
-- velocidad de desarrollo del MVP;
-- simplicidad operativa;
-- compatibilidad con la arquitectura actual;
-- facilidad de testing;
-- seguridad;
-- mantenibilidad;
-- costo;
-- facilidad de despliegue;
-- facilidad de migración futura;
-- compatibilidad con desarrollo asistido por agentes.
-
-## Alternativas
-
-### A. Google Apps Script + JavaScript
-
-Ventajas: mínima infraestructura adicional y compatibilidad directa con Google Sheets.
-
-Desventajas: mayores límites de plataforma y menor portabilidad para una evolución hacia infraestructura convencional.
-
-### B. TypeScript
-
-Ventajas: tipado estático, buen ecosistema web y buena mantenibilidad.
-
-Desventajas: requiere definir infraestructura de ejecución y persistencia adicional si se abandona Apps Script.
-
-### C. Java + Spring
-
-Ventajas: ecosistema maduro, fuerte tipado, testing y experiencia empresarial.
-
-Desventajas: mayor complejidad inicial y mayor esfuerzo operativo para un MVP pequeño.
-
-### D. Python
-
-Ventajas: rapidez de desarrollo y amplio ecosistema.
-
-Desventajas: requiere seleccionar framework e infraestructura y no ofrece una ventaja clara sobre las opciones anteriores para este MVP sin más requisitos.
+El `SPEC.md` define comportamiento y alcance, no clases, funciones, frameworks ni lenguajes. Por tanto, convertir un lenguaje concreto en una decisión del dominio reduciría la portabilidad del proyecto sin aportar valor funcional.
 
 ## Decisión
 
-**Pendiente de confirmación.**
+Se adopta una estrategia de **arquitectura y contratos agnósticos al lenguaje**, mientras que el lenguaje, framework y runtime quedan confinados a la capa de implementación.
 
-No se seleccionará un stack definitivo hasta revisar los requisitos del MVP y decidir si la prioridad principal es aprovechar la infraestructura existente o construir desde el inicio una base más portable.
+La decisión se divide en dos niveles:
 
-## Consecuencias
+1. **Producto y arquitectura:** deben permanecer independientes del lenguaje y del proveedor de LLM.
+2. **Implementación:** podrá utilizar Java, TypeScript, Python u otro lenguaje que cumpla los contratos, tests, seguridad y restricciones del proyecto.
 
-Hasta que este ADR pase a estado `Aceptado`, los documentos de requisitos y arquitectura no deben asumir un lenguaje o framework concreto.
+La selección del lenguaje/framework concreto no forma parte de este ADR. Se documentará mediante un ADR específico de implementación cuando sea necesario para comenzar el código.
 
-Una vez aceptado:
+## Criterios obligatorios para cualquier implementación
 
-1. el stack elegido se documentará aquí;
-2. las decisiones de implementación derivadas deberán respetarlo;
-3. los frameworks de testing se documentarán en la capa de implementación;
-4. una futura migración de stack requerirá un nuevo ADR que reemplace o modifique esta decisión.
+Cualquier stack seleccionado deberá permitir, como mínimo:
 
-## Relación con la arquitectura LLM-agnóstica
+- implementar el comportamiento definido por `SPEC.md`;
+- mantener contratos de dominio y API verificables;
+- ejecutar tests automatizados apropiados;
+- aplicar controles de seguridad;
+- separar dominio de infraestructura cuando corresponda;
+- permitir reemplazar la persistencia mediante adaptadores/puertos cuando aplique;
+- integrarse con CI;
+- ser mantenible por humanos y distintos agentes de IA;
+- evitar que decisiones específicas del LLM se conviertan en requisitos del producto.
 
-El stack tecnológico no define el agente utilizado.
+## Alternativas consideradas
+
+### Google Apps Script + JavaScript
+
+Adecuado cuando la prioridad sea aprovechar directamente Google Sheets y minimizar infraestructura inicial. No se adopta como requisito arquitectónico porque limitaría la portabilidad.
+
+### TypeScript
+
+Candidato fuerte para una implementación web por tipado, ecosistema y testing. Podrá seleccionarse posteriormente mediante un ADR de implementación.
+
+### Java + Spring
+
+Candidato fuerte cuando se prioricen ecosistema empresarial, tipado, testing y experiencia existente. Podrá seleccionarse posteriormente mediante un ADR de implementación.
+
+### Python
+
+Candidato viable por rapidez y ecosistema. Podrá seleccionarse posteriormente mediante un ADR de implementación.
+
+## Consecuencias positivas
+
+- El `SPEC.md` no necesita cambiar al cambiar de lenguaje.
+- Diferentes equipos o agentes pueden implementar el mismo comportamiento.
+- La migración tecnológica queda localizada en la capa de implementación.
+- Se reduce el acoplamiento con un LLM, IDE o herramienta concreta.
+- Las decisiones de tecnología quedan trazables mediante ADRs independientes.
+
+## Consecuencias negativas
+
+- Se requiere disciplina para no introducir detalles tecnológicos en documentos agnósticos.
+- Habrá que definir contratos suficientemente precisos para que distintas implementaciones sean equivalentes.
+- Mantener más de una implementación real podría incrementar el costo si alguna vez se decide hacerlo.
+
+## Relación con la persistencia
+
+El mismo principio se aplica a la base de datos:
 
 ```mermaid
 flowchart LR
-    SPEC[Especificación] --> STACK[Stack elegido]
-    STACK --> IMPL[Implementación]
-    AGENT[Codex / Copilot / Claude / Otro] --> IMPL
-    SPEC --> AGENT
+    SPEC[SPEC] --> DOMAIN[Dominio]
+    DOMAIN --> PORT[Contrato de persistencia]
+    PORT --> ADAPTER[Adaptador]
+    ADAPTER --> DB1[Google Sheets]
+    ADAPTER --> DB2[Supabase]
+    ADAPTER --> DB3[PostgreSQL]
+    ADAPTER --> DB4[Otra BD]
 ```
 
-El mismo requisito debe poder ser interpretado por diferentes agentes. La elección de agente y la elección de lenguaje son dimensiones independientes.
+Cambiar la base de datos no debe obligar a reescribir la especificación funcional.
+
+## Relación con los LLM
+
+```mermaid
+flowchart LR
+    SPEC[Especificación] --> CONTRACTS[Contratos y reglas]
+    CONTRACTS --> CHATGPT[ChatGPT]
+    CONTRACTS --> CODEX[Codex]
+    CONTRACTS --> COPILOT[Copilot]
+    CONTRACTS --> CLAUDE[Claude]
+    CONTRACTS --> OTHER[Otro LLM]
+
+    CHATGPT --> IMPL[Implementación]
+    CODEX --> IMPL
+    COPILOT --> IMPL
+    CLAUDE --> IMPL
+    OTHER --> IMPL
+```
+
+La elección del agente y la elección del lenguaje son dimensiones independientes.
+
+## Próxima decisión requerida
+
+Antes de escribir código de producción deberá crearse un ADR de **stack de implementación** que seleccione lenguaje, framework/runtime y herramientas concretas, tomando como entrada este ADR y los requisitos reales del MVP.
+
+Ese ADR no podrá modificar el comportamiento definido por `SPEC.md` sin actualizar primero la especificación correspondiente.
 
 ## Reversibilidad
 
-Media. Cambiar el stack después de comenzar la implementación puede tener un coste significativo, por lo que la decisión debe tomarse antes de desarrollar funcionalidades sustanciales.
+Alta a nivel arquitectónico y documental. La implementación concreta puede tener un costo de migración, pero no debe contaminar las capas agnósticas.
 
 ## Impacto en agentes
 
-Hasta que el ADR sea aceptado, un agente no debe asumir Java, TypeScript, Python u otro lenguaje como requisito del producto.
-
-Después de su aceptación, el agente deberá respetar el stack establecido y consultar los ADR relacionados antes de introducir cambios tecnológicos importantes.
+Un agente no debe asumir un lenguaje concreto al interpretar `SPEC.md` o la documentación funcional. Para modificar código deberá consultar el ADR de implementación vigente y respetar sus restricciones.

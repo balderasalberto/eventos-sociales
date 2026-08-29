@@ -6,6 +6,7 @@
   <title>Eventos Sociales - Demo</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; }
+    section { margin-bottom: 32px; }
     label { display: block; margin-top: 16px; font-weight: 600; }
     input, button { width: 100%; box-sizing: border-box; padding: 10px; margin-top: 6px; }
     button { margin-top: 20px; cursor: pointer; }
@@ -14,25 +15,37 @@
 </head>
 <body>
   <h1>Eventos Sociales</h1>
-  <p>Demo VS-001 — Crear y consultar evento</p>
 
-  <form id="eventForm">
-    <label for="clientId">Cliente</label>
-    <input id="clientId" name="clientId" required placeholder="CLIENT-...">
+  <section>
+    <h2>Crear evento</h2>
+    <form id="eventForm">
+      <label for="clientId">Cliente</label>
+      <input id="clientId" name="clientId" required placeholder="CLIENT-...">
 
-    <label for="name">Evento</label>
-    <input id="name" name="name" required placeholder="Nombre del evento">
+      <label for="name">Evento</label>
+      <input id="name" name="name" required placeholder="Nombre del evento">
 
-    <label for="eventDate">Fecha</label>
-    <input id="eventDate" name="eventDate" type="date" required>
+      <label for="eventDate">Fecha</label>
+      <input id="eventDate" name="eventDate" type="date" required>
 
-    <button type="submit">Crear evento</button>
-  </form>
+      <button type="submit">Crear evento</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Consultar evento</h2>
+    <form id="lookupForm">
+      <label for="eventId">ID del evento</label>
+      <input id="eventId" name="eventId" required placeholder="EVENT-...">
+      <button type="submit">Consultar</button>
+    </form>
+  </section>
 
   <div id="result" class="result" hidden></div>
 
   <script>
     const form = document.getElementById('eventForm');
+    const lookupForm = document.getElementById('lookupForm');
     const result = document.getElementById('result');
 
     form.addEventListener('submit', function (event) {
@@ -52,6 +65,19 @@
         .createEvent(input);
     });
 
+    lookupForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      result.hidden = false;
+      result.textContent = 'Consultando evento...';
+
+      const eventId = document.getElementById('eventId').value.trim();
+
+      google.script.run
+        .withSuccessHandler(showLookupResult)
+        .withFailureHandler(showFailure)
+        .getEvent(eventId);
+    });
+
     function showCreateResult(response) {
       if (!response.ok) {
         result.textContent = 'Error: ' + response.error;
@@ -60,6 +86,17 @@
 
       result.textContent =
         'Evento creado correctamente\n\n' +
+        JSON.stringify(response.event, null, 2);
+    }
+
+    function showLookupResult(response) {
+      if (!response.ok) {
+        result.textContent = 'Error: ' + response.error;
+        return;
+      }
+
+      result.textContent =
+        'Evento encontrado\n\n' +
         JSON.stringify(response.event, null, 2);
     }
 

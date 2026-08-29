@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eventos Sociales - Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; }
+    label { display: block; margin-top: 16px; font-weight: 600; }
+    input, button { width: 100%; box-sizing: border-box; padding: 10px; margin-top: 6px; }
+    button { margin-top: 20px; cursor: pointer; }
+    .result { margin-top: 24px; padding: 16px; border: 1px solid #ddd; border-radius: 6px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Eventos Sociales</h1>
+  <p>Demo VS-001 — Crear y consultar evento</p>
+
+  <form id="eventForm">
+    <label for="clientId">Cliente</label>
+    <input id="clientId" name="clientId" required placeholder="CLIENT-...">
+
+    <label for="name">Evento</label>
+    <input id="name" name="name" required placeholder="Nombre del evento">
+
+    <label for="eventDate">Fecha</label>
+    <input id="eventDate" name="eventDate" type="date" required>
+
+    <button type="submit">Crear evento</button>
+  </form>
+
+  <div id="result" class="result" hidden></div>
+
+  <script>
+    const form = document.getElementById('eventForm');
+    const result = document.getElementById('result');
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      result.hidden = false;
+      result.textContent = 'Creando evento...';
+
+      const input = {
+        clientId: document.getElementById('clientId').value,
+        name: document.getElementById('name').value,
+        eventDate: document.getElementById('eventDate').value
+      };
+
+      google.script.run
+        .withSuccessHandler(showCreateResult)
+        .withFailureHandler(showFailure)
+        .createEvent(input);
+    });
+
+    function showCreateResult(response) {
+      if (!response.ok) {
+        result.textContent = 'Error: ' + response.error;
+        return;
+      }
+
+      result.textContent =
+        'Evento creado correctamente\n\n' +
+        JSON.stringify(response.event, null, 2);
+    }
+
+    function showFailure(error) {
+      result.textContent = 'Error inesperado: ' + error.message;
+    }
+  </script>
+</body>
+</html>

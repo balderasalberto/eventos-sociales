@@ -2,114 +2,147 @@
 
 ## Estado
 
-Propuesto
+**Aceptado para la fase de Demo**
 
 ## Contexto
 
-ADR-004 establece que el producto, la arquitectura conceptual y los contratos deben permanecer independientes del lenguaje y del proveedor de LLM. Antes de crear código ejecutable necesitamos seleccionar una implementación concreta.
+ADR-004 establece que el producto, la arquitectura conceptual y los contratos deben permanecer independientes del lenguaje y del proveedor de LLM. La restricción operativa actual es que la demo debe poder ejecutarse sin requerir instalaciones locales en la laptop.
 
-El MVP es una aplicación web para administrar eventos sociales y debe demostrar un vertical slice completo: interfaz web, API/contrato, aplicación, dominio, persistencia, validación, tests, seguridad básica y CI.
+Por ello se separan explícitamente dos decisiones:
 
-## Criterios de evaluación
+1. **Implementación Demo:** Google Apps Script + Google Sheets.
+2. **Implementación objetivo de producción:** se decidirá posteriormente mediante un ADR específico cuando existan requisitos de despliegue y operación suficientes.
 
-| Criterio | Importancia |
+La implementación Demo no modifica el dominio, los contratos ni la arquitectura conceptual.
+
+## Decisión
+
+Para **VS-001 y la primera demostración funcional** se utilizará:
+
+| Capa | Tecnología |
 |---|---|
-| Adecuación para aplicación web | Alta |
-| Testing automatizado | Alta |
-| Tipado y mantenibilidad | Alta |
-| Facilidad para agentes LLM | Alta |
-| Separación dominio/infraestructura | Alta |
-| CI/CD | Alta |
-| Ecosistema y documentación | Alta |
-| Complejidad operativa para MVP | Media |
-| Experiencia disponible en el proyecto | Media |
+| Cliente | Navegador web |
+| Frontend | HTML/CSS/JavaScript servido desde Apps Script |
+| API | Google Apps Script Web App |
+| Aplicación | Casos de uso implementados en Apps Script |
+| Dominio | JavaScript/ECMAScript, manteniendo separación conceptual |
+| Persistencia | Google Sheets mediante adaptador |
+| Testing | Casos funcionales definidos en `docs/testing/`; automatización posterior según capacidad del entorno |
+| Repositorio | GitHub |
+| Documentación | Markdown + Mermaid |
 
-## Alternativas
+### Restricción de diseño
 
-### TypeScript
-
-Ventajas: ecosistema web muy amplio, tipado estático, facilidad para compartir contratos con frontend/backend, buena disponibilidad de herramientas de testing y alta compatibilidad con flujos de desarrollo asistidos por LLM.
-
-Riesgos: el ecosistema ofrece muchas alternativas de framework y librerías, por lo que será necesario limitar decisiones y dependencias.
-
-### Java + Spring
-
-Ventajas: tipado fuerte, ecosistema empresarial maduro, testing sólido, separación clara de capas y buena adecuación para una API mantenible.
-
-Riesgos: mayor volumen de configuración y complejidad inicial para un MVP web pequeño.
-
-### Python
-
-Ventajas: velocidad de desarrollo y ecosistema amplio.
-
-Riesgos: requiere disciplina adicional para mantener contratos y tipos consistentes a medida que crezca el sistema.
-
-### Google Apps Script
-
-Ventajas: integración directa con Google Sheets y baja infraestructura inicial.
-
-Riesgos: menor portabilidad y mayor acoplamiento con el ecosistema Google, contrario al objetivo de mantener la implementación sustituible.
-
-## Evaluación preliminar
-
-Para este MVP, **TypeScript** resulta la opción preliminarmente más equilibrada por su cercanía al frontend web, tipado, testing, ecosistema y facilidad de trabajo con distintos agentes LLM.
-
-Sin embargo, la decisión definitiva requiere fijar también framework/runtime y estrategia de persistencia. Por ello este ADR queda inicialmente en estado **Propuesto** y no autoriza todavía la creación de código.
-
-## Arquitectura objetivo de implementación
+Google Sheets y Apps Script son **adaptadores/infraestructura de la Demo**, no la fuente de verdad del producto.
 
 ```mermaid
 flowchart TD
-    WEB[Web UI]
-    WEB --> API[API]
-    API --> APP[Application]
-    APP --> DOMAIN[Domain]
-    APP --> PORTS[Ports]
-    PORTS --> ADAPTERS[Adapters]
-    ADAPTERS --> DB[(Persistencia)]
+    SPEC[SPEC]
+    --> DOMAIN[Domain]
+    --> CONTRACTS[Contracts]
+    --> DEMO[Demo Implementation]
 
-    DOMAIN --> UNIT[Unit Tests]
-    API --> INTEGRATION[Integration Tests]
-    WEB --> ACCEPTANCE[Acceptance Tests]
+    DEMO --> GAS[Google Apps Script]
+    GAS --> ADAPTER[Sheets Adapter]
+    ADAPTER --> SHEETS[(Google Sheets)]
 ```
 
-## Restricciones
+## Por qué esta decisión
 
-La implementación seleccionada deberá:
+La prioridad inmediata es obtener una demo verificable con el menor bloqueo operativo posible.
 
-- respetar `SPEC.md`;
-- respetar los criterios de aceptación de los vertical slices;
-- mantener el dominio aislado de detalles de persistencia cuando corresponda;
-- permitir sustituir la base de datos mediante adaptadores;
-- ejecutar tests automáticamente;
-- integrarse con GitHub Actions;
-- no introducir secretos en el repositorio;
-- ser comprensible y ejecutable por agentes distintos de un proveedor concreto;
-- mantener los wireframes y documentación funcional independientes del framework.
+La alternativa permite:
 
-## Decisión pendiente
+- trabajar desde el navegador;
+- evitar instalaciones locales de Java, Node.js, Docker o PostgreSQL;
+- aprovechar el entorno Google ya conocido;
+- demostrar VS-001 de extremo a extremo;
+- mantener los contratos independientes;
+- preparar una futura sustitución de persistencia.
 
-Antes de pasar este ADR a **Aceptado** debemos seleccionar:
+## Qué NO se está decidiendo
 
-1. lenguaje;
-2. runtime;
-3. framework web/API;
-4. framework de frontend, si aplica;
-5. estrategia inicial de persistencia;
-6. framework de testing;
-7. herramientas mínimas de calidad;
-8. estrategia de CI.
+Este ADR no establece que la aplicación de producción deba utilizar:
 
-## No decisión
+- Google Sheets;
+- Google Apps Script;
+- JavaScript;
+- TypeScript;
+- Java/Spring;
+- PostgreSQL;
+- Supabase.
 
-Este ADR no cambia:
+Esas decisiones se tomarán cuando corresponda.
 
-- el dominio;
-- los requisitos funcionales;
-- los wireframes;
-- los criterios de aceptación;
-- la independencia respecto de LLMs.
+## Evolución prevista
 
-## Próximo paso
+```mermaid
+flowchart LR
+    DOMAIN[Domain]
+    --> PORT[Persistence Port]
 
-Comparar una propuesta concreta basada en TypeScript contra una propuesta Java/Spring y seleccionar la alternativa final antes de crear código ejecutable.
+    PORT --> DEMO[Sheets Adapter]
+    PORT --> PROD[Production Adapter]
+
+    DEMO --> SHEETS[(Google Sheets)]
+    PROD --> DB[(Production DB)]
+```
+
+Una futura implementación puede ser TypeScript/Node, Java/Spring u otro lenguaje, siempre que satisfaga los contratos y casos de prueba.
+
+## Relación con los LLM
+
+La implementación deberá poder ser trabajada por distintos LLM o herramientas, incluyendo Codex, Copilot, Claude u otros, sin introducir instrucciones específicas del proveedor en el dominio.
+
+Los agentes deberán utilizar el repositorio como fuente de contexto, especialmente:
+
+- `PROJECT.md`;
+- `SPEC.md`;
+- `AGENTS.md`;
+- ADRs aplicables;
+- vertical slices;
+- contratos;
+- casos de prueba.
+
+## Seguridad
+
+- No se almacenarán secretos en GitHub.
+- El navegador no tendrá acceso directo de escritura a las hojas.
+- Las validaciones se ejecutarán en el lado servidor de la Demo.
+- La configuración de acceso se manejará fuera del código público.
+- Los datos de demostración estarán separados de datos reales.
+
+## Consecuencias
+
+### Positivas
+
+- Demo accesible sin instalaciones locales.
+- Menor fricción para validar el producto.
+- Aprovecha herramientas conocidas.
+- Mantiene abierta la migración tecnológica.
+- Permite validar primero comportamiento y UX.
+
+### Negativas
+
+- Apps Script y Sheets tienen limitaciones frente a una plataforma backend/BD dedicada.
+- La automatización de tests será más limitada que en un stack local completo.
+- Algunas capacidades de producción deberán rediseñarse posteriormente.
+
+## Criterio para reconsiderar
+
+Se deberá abrir un nuevo ADR de stack de producción cuando aparezca cualquiera de estas necesidades:
+
+- múltiples usuarios concurrentes de forma significativa;
+- transacciones reales;
+- requisitos avanzados de seguridad;
+- integración con servicios externos;
+- escalabilidad;
+- despliegue profesional;
+- observabilidad;
+- necesidades de rendimiento que excedan la Demo.
+
+## Estado de implementación
+
+**No se ha creado código de aplicación todavía.**
+
+El siguiente paso, una vez aprobada la estrategia, es implementar únicamente el mínimo necesario para ejecutar VS-001 como Demo sin instalación.

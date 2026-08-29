@@ -6,8 +6,6 @@ Demostrar el primer flujo vertical de negocio del sistema: permitir crear un eve
 
 Este slice se prioriza porque `Evento` representa el núcleo operativo del producto y permite validar de extremo a extremo la arquitectura: interfaz, contrato, aplicación, dominio, persistencia, validación, errores y tests.
 
-La gestión de clientes queda como capacidad de soporte y dependencia del dominio cuando el modelo vigente requiera asociar un evento a un cliente.
-
 ## 2. Alcance
 
 Incluye:
@@ -15,14 +13,15 @@ Incluye:
 - visualizar la opción de crear evento;
 - capturar los datos mínimos del evento;
 - validar los datos obligatorios;
-- asociar el evento a un cliente válido cuando esa relación sea obligatoria según el modelo de dominio;
+- seleccionar/referenciar un cliente existente y válido;
 - registrar el evento;
-- devolver/mostrar un identificador único;
+- generar un identificador único;
 - mostrar confirmación;
-- permitir consultar el evento recién registrado.
+- consultar el evento mediante su identificador.
 
 No incluye:
 
+- alta de clientes;
 - contratación de servicios;
 - pagos;
 - notificaciones externas;
@@ -32,19 +31,45 @@ No incluye:
 - IA para enriquecer datos;
 - tecnología específica de frontend/backend/persistencia.
 
-## 3. Requisitos relacionados
+## 3. Reglas funcionales cerradas
 
-Este vertical slice debe trazarse contra los requisitos vigentes de creación y consulta de eventos en `SPEC.md` y `docs/02-requisitos.md`.
+Las reglas mínimas se derivan directamente de `SPEC.md`:
 
-Si el modelo vigente exige un cliente asociado, deberá existir una forma válida de seleccionar o referenciar un cliente. Esto no implica que el alta completa de clientes forme parte de VS-001.
+1. Todo evento debe tener un identificador único.
+2. Todo evento debe tener una fecha.
+3. Todo evento debe tener un nombre o descripción.
+4. Todo evento debe estar asociado a un cliente válido.
+5. La creación debe rechazarse si falta cualquiera de los datos obligatorios.
+6. La creación debe rechazarse si el cliente referenciado no existe o no es válido.
+7. Una creación aceptada debe quedar persistida.
+8. Un evento persistido debe poder recuperarse mediante su identificador.
+9. La consulta debe devolver la identidad y los datos registrados del evento.
 
-## 4. Criterios de aceptación
+### Campos mínimos para VS-001
+
+| Campo | Obligatorio | Regla |
+|---|---|---|
+| Identificador | Sí, generado por el sistema | Único |
+| Cliente | Sí | Debe existir y ser válido |
+| Nombre o descripción | Sí | No puede estar ausente/vacío |
+| Fecha | Sí | Debe ser una fecha válida |
+
+`Tipo de evento` y `Ubicación` pueden mostrarse en el wireframe como datos opcionales, pero **no son obligatorios para VS-001** hasta que el SPEC los defina como tales.
+
+## 4. Requisitos relacionados
+
+- Registrar eventos.
+- Consultar eventos.
+- Reglas de negocio de `SPEC.md` relativas a Evento.
+
+## 5. Criterios de aceptación
 
 ### AC-001 — Alta válida
 
 ```text
-Given el usuario está en el formulario de evento
-And proporciona los datos obligatorios válidos
+Given existe un cliente válido
+And el usuario proporciona nombre o descripción
+And proporciona una fecha válida
 When confirma el registro
 Then el sistema registra el evento
 And genera un identificador único
@@ -55,7 +80,7 @@ And muestra una confirmación
 
 ```text
 Given el usuario está en el formulario de evento
-When intenta registrar sin un dato obligatorio
+When intenta registrar sin cliente, nombre/descripcion o fecha
 Then el sistema rechaza el registro
 And informa qué dato debe corregirse
 And no crea el evento
@@ -71,7 +96,15 @@ And informa la causa
 And no crea el evento
 ```
 
-### AC-004 — Consulta posterior
+### AC-004 — Identificador único
+
+```text
+Given se registran dos eventos válidos
+When el sistema genera sus identificadores
+Then los identificadores son diferentes
+```
+
+### AC-005 — Consulta posterior
 
 ```text
 Given un evento fue registrado correctamente
@@ -80,7 +113,7 @@ Then el sistema devuelve el mismo evento
 And conserva su identidad y datos registrados
 ```
 
-### AC-005 — Persistencia
+### AC-006 — Persistencia
 
 ```text
 Given el registro fue aceptado
@@ -89,7 +122,7 @@ Then el evento queda persistido
 And puede recuperarse posteriormente
 ```
 
-## 5. Flujo de usuario
+## 6. Flujo de usuario
 
 ```mermaid
 flowchart LR
@@ -103,7 +136,7 @@ flowchart LR
     CONFIRM --> DETAIL[Detalle del evento]
 ```
 
-## 6. Wireframe conceptual
+## 7. Wireframe conceptual
 
 > Este wireframe describe intención funcional y distribución aproximada. No representa el diseño visual final.
 
@@ -122,20 +155,20 @@ flowchart LR
 │  │ Seleccionar cliente                           ▼   │  │
 │  └───────────────────────────────────────────────────┘  │
 │                                                         │
-│  Nombre del evento *                                    │
+│  Nombre / descripción *                                 │
 │  ┌───────────────────────────────────────────────────┐  │
 │  │                                                   │  │
 │  └───────────────────────────────────────────────────┘  │
 │                                                         │
-│  Fecha *                 Tipo de evento *               │
-│  ┌───────────────────┐   ┌───────────────────────────┐  │
-│  │                   │   │                       ▼   │  │
-│  └───────────────────┘   └───────────────────────────┘  │
+│  Fecha *                                                │
+│  ┌───────────────────┐                                  │
+│  │                   │                                  │
+│  └───────────────────┘                                  │
 │                                                         │
-│  Ubicación                                              │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │                                                   │  │
-│  └───────────────────────────────────────────────────┘  │
+│  Tipo de evento              Ubicación                  │
+│  ┌───────────────────────┐   ┌────────────────────────┐ │
+│  │                       │   │                        │ │
+│  └───────────────────────┘   └────────────────────────┘ │
 │                                                         │
 │                         [Cancelar]  [Crear evento]      │
 └─────────────────────────────────────────────────────────┘
@@ -154,7 +187,7 @@ flowchart LR
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 7. Contrato funcional
+## 8. Contrato funcional
 
 La interfaz debe poder expresar, sin depender de una tecnología concreta:
 
@@ -163,18 +196,36 @@ Crear evento
 Consultar evento por identificador
 ```
 
+### Entrada mínima conceptual para crear
+
+```text
+clienteId
+nombreODescripcion
+fecha
+```
+
+### Salida mínima conceptual
+
+```text
+identificador
+clienteId
+nombreODescripcion
+fecha
+```
+
 El formato técnico del API se definirá en la capa de contratos/API correspondiente.
 
-## 8. Modelo conceptual mínimo
+## 9. Modelo conceptual mínimo
 
 ```mermaid
 classDiagram
     class Evento {
         identificador
-        nombre
+        clienteId
+        nombreODescripcion
         fecha
-        tipo
-        ubicacion
+        tipoEvento opcional
+        ubicacion opcional
     }
 
     class Cliente {
@@ -184,17 +235,17 @@ classDiagram
     Evento "*" --> "1" Cliente : asociado a
 ```
 
-Los nombres y tipos físicos deberán alinearse con el modelo de datos vigente antes de implementar.
-
-## 9. Tests mínimos
+## 10. Tests mínimos
 
 ### Unitarios
 
 - evento válido puede crearse;
-- datos obligatorios son validados;
+- nombre/descripcion obligatorio es validado;
+- fecha obligatoria y válida es validada;
+- cliente obligatorio es validado;
+- cliente inválido es rechazado;
 - identificador generado es único;
-- datos inválidos son rechazados;
-- asociación a cliente inválido es rechazada cuando corresponda.
+- datos inválidos son rechazados.
 
 ### Integración
 
@@ -203,36 +254,39 @@ Los nombres y tipos físicos deberán alinearse con el modelo de datos vigente a
 
 ### Aceptación
 
+- usuario selecciona un cliente existente;
 - usuario completa formulario y registra evento;
 - usuario recibe confirmación;
 - usuario consulta el evento registrado.
 
-## 10. Trazabilidad
+## 11. Trazabilidad
 
 ```mermaid
 flowchart LR
-    REQ[Requisitos de Evento] --> AC[Criterios AC-001..005]
+    REQ[Requisitos de Evento] --> RULES[Reglas funcionales]
+    RULES --> AC[Criterios AC-001..006]
     AC --> TEST[Tests]
     TEST --> CODE[Implementación]
     CODE --> VERIFY[Verificación]
 ```
 
-## 11. Dependencias
+## 12. Dependencias
 
 - modelo conceptual de evento;
+- cliente existente y válido;
 - reglas generales de seguridad;
 - contrato de persistencia;
 - estrategia de identificadores;
-- gestión/referencia de clientes cuando sea obligatoria;
 - stack de implementación, cuando se seleccione;
 - configuración de ejecución de tests.
 
-## 12. Definition of Done
+## 13. Definition of Done
 
-- [ ] requisitos de evento revisados y trazados;
-- [ ] criterios de aceptación revisados;
-- [ ] wireframe aprobado como referencia funcional;
-- [ ] contrato definido;
+- [x] requisitos mínimos de Evento revisados y trazados;
+- [x] reglas funcionales mínimas cerradas;
+- [x] criterios de aceptación definidos;
+- [x] wireframe aprobado como referencia funcional;
+- [x] contrato conceptual definido;
 - [ ] tests unitarios implementados;
 - [ ] tests de integración implementados cuando exista infraestructura;
 - [ ] flujo de aceptación validado;
@@ -241,6 +295,6 @@ flowchart LR
 - [ ] seguridad revisada;
 - [ ] sin secretos en el repositorio.
 
-## 13. Siguiente paso
+## 14. Siguiente paso
 
-Revisar `SPEC.md`, `docs/02-requisitos.md` y el modelo de datos para confirmar los campos mínimos y la obligatoriedad de la relación con `Cliente` antes de implementar código.
+Definir el stack de implementación concreto y completar MVP-00 para poder crear el primer test ejecutable sin introducir acoplamiento tecnológico en la especificación.

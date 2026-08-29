@@ -164,14 +164,17 @@ Las instrucciones específicas de cada herramienta son una capa de adaptación y
 - Base de seguridad y tests documentada.
 - `PROJECT.md`: contexto de continuidad del proyecto.
 - Regla de análisis de impacto y wireframes conceptuales.
+- `VS-001`: redefinido como crear y consultar evento.
+- Análisis inicial de VS-001 contra SPEC y modelo de datos.
 
 ### Pendiente
 
-1. Crear ADR de stack de implementación concreta.
-2. Completar MVP-00 — Fundación.
-3. Crear el primer vertical slice.
-4. Establecer CI y ejecución automatizada de tests.
-5. Implementar gradualmente Skills, Harness, Loops, Memory, MCP, RAG y orquestación según necesidad real.
+1. Definir el stack concreto de implementación mediante un ADR cuando sea necesario.
+2. Cerrar campos, estados y reglas definitivas de VS-001.
+3. Completar MVP-00 — Fundación.
+4. Implementar VS-001 con tests.
+5. Establecer CI y ejecución automatizada de tests.
+6. Implementar gradualmente Skills, Harness, Loops, Memory, MCP, RAG y orquestación según necesidad real.
 
 ## Regla para cambios tecnológicos
 
@@ -225,4 +228,4 @@ No incluir secretos, credenciales, tokens, claves privadas ni información sensi
 
 ## Última actualización
 
-2026-08-28
+2026-08-29
